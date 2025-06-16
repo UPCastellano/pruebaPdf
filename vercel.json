@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "api/pdf-data.js": {
+      "maxDuration": 30
+    },
+    "api/buscar-codigo.js": {
+      "maxDuration": 15
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ]
+}

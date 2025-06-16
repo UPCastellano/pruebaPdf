@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Buscar - Sistema de Códigos</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .search-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            align-items: center;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: #667eea;
+        }
+        
+        .search-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+        
+        .search-result {
+            background: #f0f8ff;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .search-result h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .result-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #4a90e2;
+        }
+        
+        .result-item strong {
+            color: #2c3e50;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        #pdfTable {
+            margin-top: 20px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .dataTables_wrapper {
+            padding: 20px;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .badge {
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-input, .search-btn {
+                width: 100%;
+            }
+            
+            .result-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-file-pdf"></i> Sistema de Búsqueda de PDFs</h1>
+            <p>Busca por código específico o explora todos los documentos</p>
+        </div>
+        
+        <div class="search-section">
+            <div class="search-container">
+                <input type="number" id="codigoInput" class="search-input" placeholder="Ingresa un código (ej: 1650)" min="1619" max="2099">
+                <button onclick="buscarCodigo()" class="search-btn">
+                    <i class="fas fa-search"></i> Buscar Código
+                </button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div id="status-container"></div>
+            <div id="search-result-container"></div>
+            <div id="debug-container"></div>
+            
+            <div class="table-container">
+                <table id="pdfTable" class="display responsive nowrap" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-file-pdf"></i> Nombre</th>
+                            <th><i class="fas fa-weight-hanging"></i> Tamaño</th>
+                            <th><i class="fas fa-calendar"></i> Modificado</th>
+                            <th><i class="fas fa-hashtag"></i> Código Inicio</th>
+                            <th><i class="fas fa-hashtag"></i> Código Fin</th>
+                            <th><i class="fas fa-file-alt"></i> Páginas</th>
+                            <th><i class="fas fa-calculator"></i> Total Códigos</th>
+                            <th><i class="fas fa-tools"></i> Acciones</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    
+    <script>
+        let dataTable;
+        
+        $(document).ready(function() {
+            console.log('🚀 Inicializando aplicación...');
+            initializeDataTable();
+            
+            // Enter key en el input de búsqueda
+            $('#codigoInput').on('keypress', function(e) {
+                if (e.which === 13) {
+                    buscarCodigo();
+                }
+            });
+        });
+        
+        function initializeDataTable() {
+            const baseUrl = window.location.origin;
+            const apiUrl = `${baseUrl}/api/pdf-data`;
+            
+            console.log('🌐 API URL:', apiUrl);
+            showStatus('loading', '<i class="fas fa-spinner fa-spin"></i> Cargando datos de PDFs...');
+            
+            dataTable = $('#pdfTable').DataTable({
+                ajax: {
+                    url: apiUrl,
+                    type: 'GET',
+                    dataSrc: function(json) {
+                        console.log('📥 Datos recibidos:', json);
+                        
+                        if (json.error) {
+                            showStatus('error', `<i class="fas fa-exclamation-triangle"></i> Error: ${json.error} - ${json.details}`);
+                            showDebug('Error de API', JSON.stringify(json, null, 2));
+                            return [];
+                        }
+                        
+                        if (json.data && json.data.length > 0) {
+                            showStatus('success', `<i class="fas fa-check-circle"></i> Se cargaron ${json.data.length} archivos PDF correctamente`);
+                        } else {
+                            showStatus('error', '<i class="fas fa-exclamation-circle"></i> No se encontraron archivos PDF');
+                        }
+                        
+                        return json.data || [];
+                    },
+                    error: function(xhr, error, code) {
+                        console.error('💥 Error de DataTables:', { xhr, error, code });
+                        
+                        let errorMessage = '<i class="fas fa-times-circle"></i> Error al cargar los datos. ';
+                        
+                        if (xhr.status === 0) {
+                            errorMessage += 'No se puede conectar al servidor.';
+                        } else if (xhr.status === 404) {
+                            errorMessage += 'API no encontrada (404).';
+                        } else if (xhr.status === 500) {
+                            errorMessage += 'Error interno del servidor (500).';
+                        } else {
+                            errorMessage += `Código de error: ${xhr.status}`;
+                        }
+                        
+                        showStatus('error', errorMessage);
+                        showDebug('Error Ajax', JSON.stringify({
+                            status: xhr.status,
+                            error: error,
+                            responseText: xhr.responseText
+                        }, null, 2));
+                    }
+                },
+                columns: [
+                    { 
+                        data: 'name',
+                        render: function(data, type, row) {
+                            return `<strong>${data}</strong>`;
+                        }
+                    },
+                    { data: 'size' },
+                    { data: 'modified' },
+                    { 
+                        data: 'codigoInicio',
+                        render: function(data) {
+                            return `<span class="badge">${data}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'codigoFin',
+                        render: function(data) {
+                            return `<span class="badge">${data}</span>`;
+                        }
+                    },
+                    { 
+                        data: null,
+                        render: function(data, type, row) {
+                            return `${row.paginaInicio} - ${row.paginaFin} (${row.totalPaginas})`;
+                        }
+                    },
+                    { data: 'totalCodigos' },
+                    { 
+                        data: null,
+                        render: function(data, type, row) {
+                            return `
+                                <div class="result-actions">
+                                    <a href="${row.link}" target="_blank" class="btn btn-primary">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                    ${row.downloadLink !== '#' ? `
+                                        <a href="${row.downloadLink}" target="_blank" class="btn btn-success">
+                                            <i class="fas fa-download"></i> Descargar
+                                        </a>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }
+                    }
+                ],
+                responsive: true,
+                pageLength: 25,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                order: [[3, 'asc']], // Ordenar por código inicio
+                initComplete: function() {
+                    console.log('✅ DataTable inicializada correctamente');
+                }
+            });
+        }
+        
+        async function buscarCodigo() {
+            const codigo = document.getElementById('codigoInput').value;
+            
+            if (!codigo) {
+                alert('Por favor ingresa un código');
+                return;
+            }
+            
+            showStatus('loading', '<i class="fas fa-spinner fa-spin"></i> Buscando código...');
+            
+            try {
+                const baseUrl = window.location.origin;
+                const response = await fetch(`${baseUrl}/api/buscar-codigo?codigo=${codigo}`);
+                const data = await response.json();
+                
+                if (response.ok && data.encontrado) {
+                    mostrarResultadoBusqueda(data);
+                    showStatus('success', `<i class="fas fa-check-circle"></i> Código ${codigo} encontrado`);
+                } else {
+                    showStatus('error', `<i class="fas fa-times-circle"></i> ${data.error}: ${data.details}`);
+                    document.getElementById('search-result-container').innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Error en búsqueda:', error);
+                showStatus('error', '<i class="fas fa-exclamation-triangle"></i> Error al buscar el código');
+            }
+        }
+        
+        function mostrarResultadoBusqueda(data) {
+            const container = document.getElementById('search-result-container');
+            container.innerHTML = `
+                <div class="search-result">
+                    <h3><i class="fas fa-search"></i> Resultado de Búsqueda - Código ${data.codigo}</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <strong>PDF:</strong> ${data.nombrePdf}
+                        </div>
+                        <div class="result-item">
+                            <strong>Página Calculada:</strong> ${data.paginaCalculada}
+                        </div>
+                        <div class="result-item">
+                            <strong>Rango de Páginas:</strong> ${data.paginaInicio} - ${data.paginaFin}
+                        </div>
+                        <div class="result-item">
+                            <strong>Rango de Códigos:</strong> ${data.codigoInicio} - ${data.codigoFin}
+                        </div>
+                    </div>
+                    <div class="result-actions">
+                        <a href="${data.linkVisualizacion}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> Ver PDF
+                        </a>
+                        <a href="${data.linkDescarga}" target="_blank" class="btn btn-success">
+                            <i class="fas fa-download"></i> Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showStatus(type, message) {
+            const container = document.getElementById('status-container');
+            container.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function showDebug(title, content) {
+            const container = document.getElementById('debug-container');
+            container.innerHTML = `
+                <details>
+                    <summary><strong><i class="fas fa-bug"></i> Debug: ${title}</strong></summary>
+                    <div class="debug-info">${content}</div>
+                </details>
+            `;
+        }
+    </script>
+</body>
+</html>
