@@ -1,4 +1,4 @@
-// API de búsqueda con manejo mejorado de private key
+// API de búsqueda con las nuevas credenciales del proyecto pdfbusqueda
 const { google } = require("googleapis")
 
 const codigosPaginas = [
@@ -119,13 +119,25 @@ module.exports = async function handler(req, res) {
       return res.status(404).json({
         error: "Código no encontrado",
         details: `El código ${codigo} no está en el rango de ningún PDF`,
+        rangoDisponible: "1619-2099",
       })
     }
 
-    const formattedPrivateKey = formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY)
+    // Usar las nuevas credenciales
+    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY
+
+    if (!clientEmail || !privateKey) {
+      return res.status(500).json({
+        error: "Credenciales faltantes",
+        details: "Verifica las variables de entorno del proyecto pdfbusqueda",
+      })
+    }
+
+    const formattedPrivateKey = formatPrivateKey(privateKey)
     const auth = new google.auth.GoogleAuth({
       credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        client_email: clientEmail,
         private_key: formattedPrivateKey,
       },
       scopes: ["https://www.googleapis.com/auth/drive.readonly"],
@@ -140,6 +152,8 @@ module.exports = async function handler(req, res) {
       fields: "id, name, size, modifiedTime, webViewLink, webContentLink",
     })
 
+    console.log(`✅ Código ${codigo} encontrado en ${file.data.name}`)
+
     res.status(200).json({
       codigo: codigoNum,
       pdfId: pdfInfo.pdfId,
@@ -152,12 +166,15 @@ module.exports = async function handler(req, res) {
       linkVisualizacion: file.data.webViewLink,
       linkDescarga: file.data.webContentLink,
       encontrado: true,
+      proyecto: "pdfbusqueda",
+      serviceAccount: clientEmail,
     })
   } catch (error) {
-    console.error("Error buscando código:", error)
+    console.error("Error buscando código con nuevas credenciales:", error)
     res.status(500).json({
       error: "Error en la búsqueda",
       details: error.message,
+      proyecto: "pdfbusqueda",
     })
   }
 }

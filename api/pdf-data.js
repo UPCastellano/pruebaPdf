@@ -1,4 +1,4 @@
-// API route corregida con mejor manejo de private key
+// API principal con las nuevas credenciales del proyecto pdfbusqueda
 const { google } = require("googleapis")
 
 const codigosPaginas = [
@@ -118,17 +118,40 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    console.log("🚀 Iniciando búsqueda de PDFs...")
+    console.log("🚀 Iniciando búsqueda de PDFs con nuevas credenciales...")
 
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL
     const privateKey = process.env.GOOGLE_PRIVATE_KEY
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
 
+    // Verificar credenciales específicas del nuevo proyecto
+    const expectedEmail = "pdf-vercel-app@pdfbusqueda.iam.gserviceaccount.com"
+    const expectedFolder = "18W0EM6vs0sJ1M0Qrpu6HC2r32ZQ8IIgV"
+
     if (!clientEmail || !privateKey || !folderId) {
       return res.status(500).json({
         error: "Variables de entorno faltantes",
-        details: "Verifica GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY y GOOGLE_DRIVE_FOLDER_ID",
-        testUrl: `${req.headers.host}/api/test-credentials`,
+        details: "Verifica las nuevas credenciales del proyecto pdfbusqueda",
+        configuracionEsperada: {
+          GOOGLE_CLIENT_EMAIL: expectedEmail,
+          GOOGLE_DRIVE_FOLDER_ID: expectedFolder,
+        },
+        testUrl: `/api/test-credentials`,
+      })
+    }
+
+    // Verificar que sean las credenciales correctas
+    if (clientEmail !== expectedEmail) {
+      return res.status(500).json({
+        error: "Email de service account incorrecto",
+        details: `Esperado: ${expectedEmail}, Recibido: ${clientEmail}`,
+      })
+    }
+
+    if (folderId !== expectedFolder) {
+      return res.status(500).json({
+        error: "Folder ID incorrecto",
+        details: `Esperado: ${expectedFolder}, Recibido: ${folderId}`,
       })
     }
 
@@ -142,9 +165,9 @@ module.exports = async function handler(req, res) {
       })
     }
 
-    console.log("🔑 Private key formateada correctamente")
+    console.log("🔑 Usando credenciales del proyecto pdfbusqueda")
 
-    // Configurar autenticación
+    // Configurar autenticación con las nuevas credenciales
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: clientEmail,
@@ -155,7 +178,7 @@ module.exports = async function handler(req, res) {
 
     const drive = google.drive({ version: "v3", auth })
 
-    // Obtener PDFs específicos
+    // Obtener PDFs específicos usando los IDs conocidos
     const pdfIds = codigosPaginas.map((item) => item.pdfId)
     const pdfDataPromises = pdfIds.map(async (pdfId) => {
       try {
@@ -173,9 +196,9 @@ module.exports = async function handler(req, res) {
     const pdfFiles = await Promise.all(pdfDataPromises)
     const validPdfFiles = pdfFiles.filter((file) => file !== null)
 
-    console.log(`✅ Se encontraron ${validPdfFiles.length} archivos PDF`)
+    console.log(`✅ Se encontraron ${validPdfFiles.length} archivos PDF con nuevas credenciales`)
 
-    // Formatear datos
+    // Formatear datos para DataTables
     const formattedData = validPdfFiles.map((file) => {
       const codigoInfo = codigosPaginas.find((item) => item.pdfId === file.id)
 
@@ -200,24 +223,33 @@ module.exports = async function handler(req, res) {
       recordsTotal: formattedData.length,
       recordsFiltered: formattedData.length,
       success: true,
+      proyecto: "pdfbusqueda",
+      serviceAccount: clientEmail,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error("💥 Error en la API:", error)
+    console.error("💥 Error en la API con nuevas credenciales:", error)
 
     let errorResponse = {
       error: "Error al obtener datos de PDFs",
       details: error.message,
       code: error.code || "UNKNOWN_ERROR",
+      proyecto: "pdfbusqueda",
       timestamp: new Date().toISOString(),
     }
 
     if (error.message.includes("invalid_grant")) {
       errorResponse = {
         error: "Error de autenticación JWT",
-        details: "Formato incorrecto de GOOGLE_PRIVATE_KEY",
+        details: "Problema con GOOGLE_PRIVATE_KEY del proyecto pdfbusqueda",
         solucion: "Usa /api/test-credentials para diagnosticar el problema",
         testUrl: `/api/test-credentials`,
+      }
+    } else if (error.message.includes("access_denied")) {
+      errorResponse = {
+        error: "Acceso denegado a Google Drive",
+        details: "El service account pdf-vercel-app@pdfbusqueda.iam.gserviceaccount.com no tiene acceso",
+        solucion: "Comparte la carpeta con el service account",
       }
     }
 
