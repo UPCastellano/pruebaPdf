@@ -247,6 +247,9 @@
                 <button onclick="buscarCodigo()" class="search-btn">
                     <i class="fas fa-search"></i> Buscar Código
                 </button>
+                <button onclick="abrirBusquedaAvanzada()" class="search-btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="fas fa-search-plus"></i> Búsqueda Avanzada
+                </button>
             </div>
         </div>
         
@@ -474,6 +477,10 @@
                     <div class="debug-info">${content}</div>
                 </details>
             `;
+        }
+
+        function abrirBusquedaAvanzada() {
+            window.open('/visor.html', '_blank');
         }
     </script>
 </body>
