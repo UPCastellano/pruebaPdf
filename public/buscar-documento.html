@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar en Documento - Sistema PDF</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .step-container {
+            padding: 40px;
+        }
+        
+        .step {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
+        
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-right: 15px;
+        }
+        
+        .step-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .document-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .document-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .document-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+        
+        .document-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .document-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        
+        .document-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+            line-height: 1.3;
+        }
+        
+        .document-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .info-icon {
+            width: 16px;
+            text-align: center;
+            color: #667eea;
+        }
+        
+        .document-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .search-section {
+            display: none;
+        }
+        
+        .search-section.active {
+            display: block;
+        }
+        
+        .search-form {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .form-select, .form-input {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .form-select:focus, .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .selected-document {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .selected-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status.loading {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1976d2;
+        }
+        
+        .status.success {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            color: #2e7d32;
+        }
+        
+        .status.error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            color: #c62828;
+        }
+        
+        .result-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .result-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .detail-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .documents-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .document-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-search-plus"></i> Buscar en Documento Específico</h1>
+            <p>Selecciona un documento y busca por código o número de página</p>
+        </div>
+        
+        <div class="step-container">
+            <!-- Paso 1: Seleccionar Documento -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Selecciona el Documento</div>
+                </div>
+                
+                <div class="documents-grid" id="documentsGrid">
+                    <!-- Los documentos se cargarán aquí -->
+                </div>
+            </div>
+            
+            <!-- Paso 2: Buscar en el Documento -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Buscar en el Documento</div>
+                </div>
+                
+                <div class="search-section" id="searchSection">
+                    <div class="selected-document" id="selectedDocument" style="display: none;">
+                        <!-- Información del documento seleccionado -->
+                    </div>
+                    
+                    <div class="search-form">
+                        <div class="form-group">
+                            <label class="form-label">Buscar por:</label>
+                            <select id="tipoBusqueda" class="form-select">
+                                <option value="codigo">Código</option>
+                                <option value="pagina">Número de Página</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" id="valorLabel">Ingresa el código:</label>
+                            <input type="number" id="valorBusqueda" class="form-input" placeholder="Ej: 1650">
+                        </div>
+                        
+                        <button onclick="buscarEnDocumento()" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                    
+                    <div id="statusContainer"></div>
+                    <div id="resultContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let documentoSeleccionado = null;
+        
+        const documentos = [
+            {
+                pdfId: "1S4AS3ZgN2i7XMj57EbE1XkILKkmfsk-T",
+                nombre: "Documento A - Códigos 1619-1688",
+                codigoInicio: 1619,
+                codigoFin: 1688,
+                paginaInicio: 2,
+                paginaFin: 71,
+                serie: "A",
+                año: 2019,
+            },
+            {
+                pdfId: "1BzgdLF_1nYANpfThTnt7sjAGCVqjJ82q",
+                nombre: "Documento B - Códigos 1689-1755",
+                codigoInicio: 1689,
+                codigoFin: 1755,
+                paginaInicio: 5,
+                paginaFin: 72,
+                serie: "B",
+                año: 2020,
+            },
+            {
+                pdfId: "1i5THNFxVBtcH-enXQEIj1IjYTedRy3_Q",
+                nombre: "Documento C - Códigos 1757-1800",
+                codigoInicio: 1757,
+                codigoFin: 1800,
+                paginaInicio: 4,
+                paginaFin: 47,
+                serie: "C",
+                año: 2020,
+            },
+            {
+                pdfId: "1INiU5qvRTxknI5IKzpDSLW6d-KYuf742",
+                nombre: "Documento D - Códigos 1801-1851",
+                codigoInicio: 1801,
+                codigoFin: 1851,
+                paginaInicio: 5,
+                paginaFin: 55,
+                serie: "D",
+                año: 2021,
+            },
+            {
+                pdfId: "1U8znCxJWEydIZjfq-YxXSJEDb5yZkvrR",
+                nombre: "Documento E - Códigos 1851-1900",
+                codigoInicio: 1851,
+                codigoFin: 1900,
+                paginaInicio: 4,
+                paginaFin: 40,
+                serie: "E",
+                año: 2021,
+            },
+            {
+                pdfId: "1ZQq8rJlzbwNVsXvQuGobeAuQJx6MQRyM",
+                nombre: "Documento F - Códigos 1889-1939",
+                codigoInicio: 1889,
+                codigoFin: 1939,
+                paginaInicio: 4,
+                paginaFin: 40,
+                serie: "F",
+                año: 2022,
+            },
+            {
+                pdfId: "1nMXBjzdXzCEAw9WBOItKPIeYXHblfGCN",
+                nombre: "Documento G - Códigos 1940-1973",
+                codigoInicio: 1940,
+                codigoFin: 1973,
+                paginaInicio: 4,
+                paginaFin: 37,
+                serie: "G",
+                año: 2022,
+            },
+            {
+                pdfId: "16LImseW0uSu9tZtmo1lrxgu32BxCZW6_",
+                nombre: "Documento H - Códigos 1974-2017",
+                codigoInicio: 1974,
+                codigoFin: 2017,
+                paginaInicio: 4,
+                paginaFin: 47,
+                serie: "H",
+                año: 2023,
+            },
+            {
+                pdfId: "1KqE5eWMOVcZvjmlQyd6RILEoKg2Gb384",
+                nombre: "Documento I - Códigos 2018-2052",
+                codigoInicio: 2018,
+                codigoFin: 2052,
+                paginaInicio: 4,
+                paginaFin: 38,
+                serie: "I",
+                año: 2023,
+            },
+            {
+                pdfId: "16ayDHQP-1040MkTaQgXNlMiCSq3dABvX",
+                nombre: "Documento J - Códigos 2053-2071",
+                codigoInicio: 2053,
+                codigoFin: 2071,
+                paginaInicio: 3,
+                paginaFin: 21,
+                serie: "J",
+                año: 2024,
+            },
+            {
+                pdfId: "18fzYtjJ9NA5_XEq9eC6Mn1PsrlKR-OJR",
+                nombre: "Documento K - Códigos 2072-2099",
+                codigoInicio: 2072,
+                codigoFin: 2099,
+                paginaInicio: 3,
+                paginaFin: 30,
+                serie: "K",
+                año: 2024,
+            },
+        ];
+        
+        function inicializar() {
+            cargarDocumentos();
+            configurarEventos();
+        }
+        
+        function cargarDocumentos() {
+            const grid = document.getElementById('documentsGrid');
+            
+            grid.innerHTML = documentos.map(doc => `
+                <div class="document-card" onclick="seleccionarDocumento('${doc.pdfId}')">
+                    <div class="document-header">
+                        <div class="document-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="document-title">${doc.nombre}</div>
+                    </div>
+                    
+                    <div class="document-info">
+                        <div class="info-item">
+                            <i class="fas fa-tag info-icon"></i>
+                            <span>Serie: <strong>${doc.serie}</strong></span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-calendar info-icon"></i>
+                            <span>Año: <strong>${doc.año}</strong></span>
+                        </div>
+                    </div>
+                    
+                    <div class="document-stats">
+                        <div class="stat">
+                            <div class="stat-number">${doc.codigoInicio}-${doc.codigoFin}</div>
+                            <div class="stat-label">Códigos</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number">${doc.paginaInicio}-${doc.paginaFin}</div>
+                            <div class="stat-label">Páginas</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number">${doc.codigoFin - doc.codigoInicio + 1}</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function seleccionarDocumento(pdfId) {
+            // Remover selección anterior
+            document.querySelectorAll('.document-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Seleccionar nuevo documento
+            event.currentTarget.classList.add('selected');
+            
+            documentoSeleccionado = documentos.find(doc => doc.pdfId === pdfId);
+            
+            // Mostrar información del documento seleccionado
+            mostrarDocumentoSeleccionado();
+            
+            // Activar sección de búsqueda
+            document.getElementById('searchSection').classList.add('active');
+            
+            // Scroll suave a la sección de búsqueda
+            document.getElementById('searchSection').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+        
+        function mostrarDocumentoSeleccionado() {
+            const container = document.getElementById('selectedDocument');
+            
+            container.innerHTML = `
+                <div class="selected-title">
+                    <i class="fas fa-check-circle"></i>
+                    Documento Seleccionado: ${documentoSeleccionado.nombre}
+                </div>
+                <div class="document-info">
+                    <div class="info-item">
+                        <i class="fas fa-hashtag info-icon"></i>
+                        <span>Códigos: <strong>${documentoSeleccionado.codigoInicio} - ${documentoSeleccionado.codigoFin}</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-file-alt info-icon"></i>
+                        <span>Páginas: <strong>${documentoSeleccionado.paginaInicio} - ${documentoSeleccionado.paginaFin}</strong></span>
+                    </div>
+                </div>
+            `;
+            
+            container.style.display = 'block';
+            
+            // Actualizar placeholders
+            actualizarPlaceholders();
+        }
+        
+        function configurarEventos() {
+            document.getElementById('tipoBusqueda').addEventListener('change', actualizarPlaceholders);
+            
+            document.getElementById('valorBusqueda').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    buscarEnDocumento();
+                }
+            });
+        }
+        
+        function actualizarPlaceholders() {
+            const tipo = document.getElementById('tipoBusqueda').value;
+            const label = document.getElementById('valorLabel');
+            const input = document.getElementById('valorBusqueda');
+            
+            if (!documentoSeleccionado) return;
+            
+            if (tipo === 'codigo') {
+                label.textContent = 'Ingresa el código:';
+                input.placeholder = `Ej: ${documentoSeleccionado.codigoInicio}`;
+                input.min = documentoSeleccionado.codigoInicio;
+                input.max = documentoSeleccionado.codigoFin;
+            } else {
+                label.textContent = 'Ingresa el número de página:';
+                input.placeholder = `Ej: ${documentoSeleccionado.paginaInicio}`;
+                input.min = documentoSeleccionado.paginaInicio;
+                input.max = documentoSeleccionado.paginaFin;
+            }
+        }
+        
+        async function buscarEnDocumento() {
+            if (!documentoSeleccionado) {
+                alert('Por favor selecciona un documento primero');
+                return;
+            }
+            
+            const tipoBusqueda = document.getElementById('tipoBusqueda').value;
+            const valor = document.getElementById('valorBusqueda').value;
+            
+            if (!valor) {
+                alert('Por favor ingresa un valor para buscar');
+                return;
+            }
+            
+            mostrarStatus('loading', '<i class="fas fa-spinner spinner"></i> Buscando en el documento...');
+            
+            try {
+                const baseUrl = window.location.origin;
+                const url = `${baseUrl}/api/buscar-en-documento?pdfId=${documentoSeleccionado.pdfId}&tipoBusqueda=${tipoBusqueda}&valor=${valor}`;
+                
+                console.log('🔍 Buscando en:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    mostrarResultado(data);
+                    mostrarStatus('success', `<i class="fas fa-check-circle"></i> ¡Encontrado! Preparando visualización...`);
+                } else {
+                    mostrarStatus('error', `<i class="fas fa-times-circle"></i> ${data.error}: ${data.details || ''}`);
+                    limpiarResultado();
+                }
+            } catch (error) {
+                console.error('Error en búsqueda:', error);
+                mostrarStatus('error', '<i class="fas fa-exclamation-triangle"></i> Error al realizar la búsqueda');
+                limpiarResultado();
+            }
+        }
+        
+        function mostrarResultado(data) {
+            const container = document.getElementById('resultContainer');
+            
+            const busqueda = data.busqueda;
+            const documento = data.documento;
+            
+            container.innerHTML = `
+                <div class="result-container">
+                    <div class="result-header">
+                        <div class="result-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div>
+                            <h3>¡Resultado Encontrado!</h3>
+                            <p>Búsqueda: ${busqueda.tipoBusqueda === 'codigo' ? 'Código' : 'Página'} ${busqueda.valorBuscado}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="result-details">
+                        <div class="detail-card">
+                            <div class="detail-label">Documento</div>
+                            <div class="detail-value">${documento.nombre}</div>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <div class="detail-label">${busqueda.tipoBusqueda === 'codigo' ? 'Página Calculada' : 'Página Destino'}</div>
+                            <div class="detail-value">${busqueda.paginaCalculada || busqueda.paginaDestino}</div>
+                        </div>
+                        
+                        ${busqueda.codigoEncontrado ? `
+                            <div class="detail-card">
+                                <div class="detail-label">Código</div>
+                                <div class="detail-value">${busqueda.codigoEncontrado}</div>
+                            </div>
+                        ` : ''}
+                        
+                        ${busqueda.codigoAproximado ? `
+                            <div class="detail-card">
+                                <div class="detail-label">Código Aproximado</div>
+                                <div class="detail-value">${busqueda.codigoAproximado}</div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="detail-card">
+                            <div class="detail-label">Serie</div>
+                            <div class="detail-value">${documento.serie} (${documento.año})</div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button onclick="abrirVisorDirecto('${data.enlaces.visorDirecto}')" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> Ver en Página Específica
+                        </button>
+                        <a href="${data.enlaces.googleDrive}" target="_blank" class="btn btn-secondary">
+                            <i class="fas fa-external-link-alt"></i> Abrir en Google Drive
+                        </a>
+                        <a href="${data.enlaces.descarga}" target="_blank" class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function abrirVisorDirecto(url) {
+            window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        }
+        
+        function mostrarStatus(tipo, mensaje) {
+            const container = document.getElementById('statusContainer');
+            container.innerHTML = `<div class="status ${tipo}">${mensaje}</div>`;
+        }
+        
+        function limpiarResultado() {
+            document.getElementById('resultContainer').innerHTML = '';
+        }
+        
+        // Inicializar cuando cargue la página
+        window.addEventListener('load', inicializar);
+    </script>
+</body>
+</html>
