@@ -243,16 +243,7 @@
         
         <div class="search-section">
             <div class="search-container">
-                <input type="number" id="codigoInput" class="search-input" placeholder="Ingresa un código (ej: 1650)" min="1619" max="2099">
-                <button onclick="buscarCodigo()" class="search-btn">
-                    <i class="fas fa-search"></i> Buscar Código
-                </button>
-                <button onclick="abrirBusquedaAvanzada()" class="search-btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    <i class="fas fa-search-plus"></i> Búsqueda Avanzada
-                </button>
-                <button onclick="abrirBusquedaDocumento()" class="search-btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                    <i class="fas fa-file-search"></i> Buscar en Documento
-                </button>
+                <span style="font-size:1.1em;color:#555">Selecciona un PDF de la tabla y busca por número de página</span>
             </div>
         </div>
         
@@ -272,7 +263,7 @@
                             <th><i class="fas fa-hashtag"></i> Código Fin</th>
                             <th><i class="fas fa-file-alt"></i> Páginas</th>
                             <th><i class="fas fa-calculator"></i> Total Códigos</th>
-                            <th><i class="fas fa-tools"></i> Acciones</th>
+                            <th><i class="fas fa-search"></i> Buscar Página</th>
                         </tr>
                     </thead>
                 </table>
@@ -351,59 +342,42 @@
                     }
                 },
                 columns: [
-                    { 
-                        data: 'name',
-                        render: function(data, type, row) {
-                            return `<strong>${data}</strong>`;
-                        }
-                    },
+                    { data: 'name', render: function(data) { return `<strong>${data}</strong>`; } },
                     { data: 'size' },
                     { data: 'modified' },
-                    { 
-                        data: 'codigoInicio',
-                        render: function(data) {
-                            return `<span class="badge">${data}</span>`;
-                        }
-                    },
-                    { 
-                        data: 'codigoFin',
-                        render: function(data) {
-                            return `<span class="badge">${data}</span>`;
-                        }
-                    },
-                    { 
-                        data: null,
-                        render: function(data, type, row) {
-                            return `${row.paginaInicio} - ${row.paginaFin} (${row.totalPaginas})`;
-                        }
-                    },
+                    { data: 'codigoInicio', render: function(data) { return `<span class="badge">${data}</span>`; } },
+                    { data: 'codigoFin', render: function(data) { return `<span class="badge">${data}</span>`; } },
+                    { data: null, render: function(data, type, row) { return `${row.paginaInicio} - ${row.paginaFin} (${row.totalPaginas})`; } },
                     { data: 'totalCodigos' },
-                    { 
-                        data: null,
-                        render: function(data, type, row) {
-                            return `
-                                <div class="result-actions">
-                                    <a href="${row.link}" target="_blank" class="btn btn-primary">
-                                        <i class="fas fa-eye"></i> Ver
-                                    </a>
-                                    ${row.downloadLink !== '#' ? `
-                                        <a href="${row.downloadLink}" target="_blank" class="btn btn-success">
-                                            <i class="fas fa-download"></i> Descargar
-                                        </a>
-                                    ` : ''}
-                                </div>
-                            `;
-                        }
-                    }
+                    { data: null, render: function(data, type, row) {
+                        return `<div class='result-actions'>
+                            <input type='number' min='${row.paginaInicio}' max='${row.paginaFin}' placeholder='Página' style='width:70px;padding:4px 8px;border-radius:6px;border:1px solid #ccc;margin-right:6px;'>
+                            <button class='btn btn-primary btn-buscar-pagina' data-pdfid='${row.id}' data-nombre='${row.name}' data-pag-inicio='${row.paginaInicio}' data-pag-fin='${row.paginaFin}'>
+                                <i class='fas fa-eye'></i> Ver
+                            </button>
+                        </div>`;
+                    }}
                 ],
                 responsive: true,
                 pageLength: 25,
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-                },
-                order: [[3, 'asc']], // Ordenar por código inicio
+                language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                order: [[3, 'asc']],
                 initComplete: function() {
-                    console.log('✅ DataTable inicializada correctamente');
+                    $('#pdfTable tbody').on('click', '.btn-buscar-pagina', function() {
+                        const row = $(this).closest('tr');
+                        const input = row.find('input[type=number]');
+                        const pagina = input.val();
+                        const pdfId = $(this).data('pdfid');
+                        const nombre = $(this).data('nombre');
+                        const pagInicio = $(this).data('pag-inicio');
+                        const pagFin = $(this).data('pag-fin');
+                        if (!pagina || pagina < pagInicio || pagina > pagFin) {
+                            alert(`Ingresa un número de página válido (${pagInicio}-${pagFin})`);
+                            input.focus();
+                            return;
+                        }
+                        abrirVisorPagina(pdfId, nombre, pagina);
+                    });
                 }
             });
         }
@@ -482,12 +456,9 @@
             `;
         }
 
-        function abrirBusquedaAvanzada() {
-            window.open('/visor.html', '_blank');
-        }
-
-        function abrirBusquedaDocumento() {
-            window.open('/buscar-documento.html', '_blank');
+        function abrirVisorPagina(pdfId, nombre, pagina) {
+            const url = `/visualizador.html?pdfId=${encodeURIComponent(pdfId)}&nombre=${encodeURIComponent(nombre)}&pagina=${encodeURIComponent(pagina)}`;
+            window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
         }
     </script>
 </body>

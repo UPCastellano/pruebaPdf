@@ -3,31 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor PDF Avanzado - Sistema de Búsqueda</title>
+    <title>Visor de PDF</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
             font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #222;
         }
-        
         .container {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 32px 16px;
         }
-        
         .header {
             background: rgba(255, 255, 255, 0.98);
             border-radius: 18px;
@@ -36,633 +25,135 @@
             box-shadow: 0 8px 32px rgba(102,126,234,0.10);
             text-align: center;
         }
-        
         .header h1 {
-            font-size: 2.7em;
+            font-size: 2.2em;
             margin-bottom: 8px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
         .header p {
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: #555;
         }
-        
-        .search-advanced {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 18px;
-            padding: 32px 24px 24px 24px;
-            margin-bottom: 32px;
-            box-shadow: 0 8px 32px rgba(102,126,234,0.08);
-        }
-        
-        .search-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 18px;
-            margin-bottom: 18px;
-        }
-        
-        .search-group {
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        
-        .search-group label {
-            font-weight: 700;
-            margin-bottom: 7px;
-            color: #4b4b6b;
-            letter-spacing: 0.5px;
-        }
-        
-        .search-input, .search-select {
-            padding: 13px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            outline: none;
-            background: #f7f8fa;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            padding-left: 38px;
-        }
-        
-        .search-input:focus, .search-select:focus {
-            border-color: #764ba2;
-            box-shadow: 0 0 0 2px #764ba220;
-        }
-        
-        .search-buttons {
-            display: flex;
-            gap: 18px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-        
-        .btn {
-            padding: 13px 28px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 700;
-            transition: all 0.2s, box-shadow 0.3s, background 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(102,126,234,0.07);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px) scale(1.04);
-            box-shadow: 0 6px 18px rgba(102,126,234,0.13);
-        }
-        
-        .btn:after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255,255,255,0.2);
-            border-radius: 100%;
-            transform: translate(-50%, -50%);
-            transition: width 0.4s, height 0.4s;
-            z-index: 0;
-        }
-        
-        .btn:active:after {
-            width: 200px;
-            height: 200px;
-        }
-        
-        .btn > * {
-            position: relative;
-            z-index: 1;
-        }
-        
         .results-container {
             background: rgba(255, 255, 255, 0.98);
             border-radius: 18px;
-            padding: 32px 24px;
+            padding: 60px 24px;
             box-shadow: 0 8px 32px rgba(102,126,234,0.08);
-        }
-        
-        .results-header {
             text-align: center;
-            margin-bottom: 18px;
         }
-        
-        .results-header h3 {
-            font-size: 1.5em;
+        .form-avanzada {
+            margin: 0 auto 32px auto;
+            max-width: 500px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px #764ba220;
+            padding: 32px 24px 24px 24px;
+        }
+        .form-avanzada label {
+            font-weight: 700;
             color: #764ba2;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
+            display: block;
         }
-        
-        .results-header p {
-            color: #555;
+        .form-avanzada input, .form-avanzada select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1.5px solid #bbb;
+            margin-bottom: 18px;
             font-size: 1em;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 22px;
-            margin-top: 18px;
-        }
-        
-        .pdf-card {
-            background: white;
-            border-radius: 15px;
-            padding: 24px 20px 20px 20px;
-            box-shadow: 0 4px 18px rgba(102,126,234,0.07);
-            transition: all 0.2s;
-            border: 2px solid transparent;
-            position: relative;
-            opacity: 0;
-            transform: translateY(30px);
-            animation: fadeIn 0.7s cubic-bezier(0.4,0,0.2,1) forwards;
-        }
-        
-        .pdf-card:hover {
-            transform: translateY(-4px) scale(1.01);
-            box-shadow: 0 12px 32px rgba(102,126,234,0.13);
+        .form-avanzada input:focus, .form-avanzada select:focus {
             border-color: #764ba2;
         }
-        
-        .pdf-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .pdf-icon {
-            width: 48px;
-            height: 48px;
+        .form-avanzada button {
+            width: 100%;
+            padding: 12px 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 22px;
-            margin-right: 14px;
-        }
-        
-        .pdf-title {
-            font-size: 1.15em;
-            font-weight: 700;
-            color: #2c3e50;
-            line-height: 1.3;
-        }
-        
-        .pdf-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-        
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 13px;
-            color: #666;
-        }
-        
-        .detail-icon {
-            width: 16px;
-            text-align: center;
-            color: #667eea;
-        }
-        
-        .pdf-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            padding: 10px 0 10px 0;
-            background: #f7f8fa;
+            color: #fff;
+            border: none;
             border-radius: 8px;
-        }
-        
-        .stat {
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #667eea;
-        }
-        
-        .stat-label {
-            font-size: 11px;
-            color: #888;
-            text-transform: uppercase;
-        }
-        
-        .pdf-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 14px;
-            flex: 1;
-        }
-        
-        .status {
-            padding: 13px;
-            border-radius: 10px;
-            margin-bottom: 18px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1em;
-        }
-        
-        .status.loading {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            color: #1976d2;
-        }
-        
-        .status.success {
-            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
-            color: #2e7d32;
-        }
-        
-        .status.error {
-            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-            color: #c62828;
-        }
-        
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #888;
-        }
-        
-        .empty-state i {
-            font-size: 4em;
-            margin-bottom: 20px;
-            color: #ddd;
-        }
-        
-        @media (max-width: 900px) {
-            .container { padding: 12px; }
-            .results-grid { grid-template-columns: 1fr; }
-            .search-grid { grid-template-columns: 1fr; }
-        }
-        
-        @media (max-width: 600px) {
-            .header, .search-advanced, .results-container { padding: 12px 4px; }
-            .pdf-card { padding: 12px 6px; }
-        }
-        
-        /* Animaciones */
-        .fade-in {
-            animation: fadeIn 0.7s cubic-bezier(0.4,0,0.2,1);
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .pdf-card:nth-child(1) { animation-delay: 0.05s; }
-        .pdf-card:nth-child(2) { animation-delay: 0.12s; }
-        .pdf-card:nth-child(3) { animation-delay: 0.19s; }
-        .pdf-card:nth-child(4) { animation-delay: 0.26s; }
-        .pdf-card:nth-child(5) { animation-delay: 0.33s; }
-        .search-group .fa {
-            position: absolute;
-            left: 16px;
-            top: 38px;
-            color: #764ba2;
             font-size: 1.1em;
-            pointer-events: none;
-            opacity: 0.7;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .form-avanzada button:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-search"></i> Búsqueda Avanzada de PDFs</h1>
-            <p>Sistema avanzado de búsqueda por código, serie, año, rango o página</p>
+            <h1><i class="fas fa-eye"></i> Visor de PDF</h1>
+            <p>Selecciona un archivo en la tabla principal o usa la búsqueda avanzada para ver una página específica.</p>
         </div>
-        
-        <div class="search-advanced">
-            <div class="search-grid">
-                <div class="search-group">
-                    <label for="tipoBusqueda">Tipo de Búsqueda</label>
-                    <select id="tipoBusqueda" class="search-select" onchange="toggleSearchFields()">
-                        <option value="codigo">Por Código</option>
-                        <option value="serie">Por Serie</option>
-                        <option value="año">Por Año</option>
-                        <option value="rango">Por Rango de Códigos</option>
-                        <option value="pagina">Por Número de Página</option>
-                    </select>
-                </div>
-                
-                <div class="search-group" id="valorGroup">
-                    <label for="valorBusqueda">Valor</label>
-                    <input type="text" id="valorBusqueda" class="search-input" placeholder="Ingresa el valor a buscar">
-                </div>
-                
-                <div class="search-group" id="codigoInicioGroup" style="display: none;">
-                    <label for="codigoInicio">Código Inicio</label>
-                    <input type="number" id="codigoInicio" class="search-input" placeholder="Ej: 1650">
-                </div>
-                
-                <div class="search-group" id="codigoFinGroup" style="display: none;">
-                    <label for="codigoFin">Código Fin</label>
-                    <input type="number" id="codigoFin" class="search-input" placeholder="Ej: 1700">
-                </div>
-            </div>
-            
-            <div class="search-buttons">
-                <button onclick="buscarAvanzado()" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Buscar
-                </button>
-                <button onclick="limpiarBusqueda()" class="btn btn-secondary">
-                    <i class="fas fa-eraser"></i> Limpiar
-                </button>
-                <button onclick="volverInicio()" class="btn btn-secondary">
-                    <i class="fas fa-home"></i> Volver al Inicio
-                </button>
-            </div>
-        </div>
-        
-        <div class="results-container">
-            <div id="status-container"></div>
-            <div id="results-container">
-                <div class="empty-state">
-                    <i class="fas fa-search"></i>
-                    <h3>Realiza una búsqueda</h3>
-                    <p>Selecciona el tipo de búsqueda y ingresa los criterios para encontrar tus PDFs</p>
-                </div>
-            </div>
+        <div class="results-container" id="visorContainer">
+            <i class="fas fa-info-circle" style="font-size:3em;color:#764ba2;"></i>
+            <h2>Abre un PDF desde la tabla principal</h2>
+            <p>O usa la búsqueda avanzada para ver una página específica de cualquier archivo.</p>
+            <form class="form-avanzada" id="formAvanzada">
+                <label for="pdfIdInput"><i class="fas fa-file-pdf"></i> Selecciona el archivo PDF</label>
+                <select id="pdfIdInput" required style="width:100%"></select>
+                <label for="paginaInput"><i class="fas fa-file-alt"></i> Número de página</label>
+                <input type="number" id="paginaInput" min="1" placeholder="Ej: 1" required>
+                <label for="nombreInput"><i class="fas fa-font"></i> Nombre (opcional)</label>
+                <input type="text" id="nombreInput" placeholder="Nombre para mostrar en el visor">
+                <button type="submit"><i class="fas fa-eye"></i> Ver en visor</button>
+            </form>
         </div>
     </div>
-
     <script>
-        function toggleSearchFields() {
-            const tipo = document.getElementById('tipoBusqueda').value;
-            const valorGroup = document.getElementById('valorGroup');
-            const codigoInicioGroup = document.getElementById('codigoInicioGroup');
-            const codigoFinGroup = document.getElementById('codigoFinGroup');
-            const valorInput = document.getElementById('valorBusqueda');
-            
-            // Reset visibility
-            valorGroup.style.display = 'flex';
-            codigoInicioGroup.style.display = 'none';
-            codigoFinGroup.style.display = 'none';
-            
-            // Update placeholder and show/hide fields based on search type
-            switch(tipo) {
-                case 'codigo':
-                    valorInput.placeholder = 'Ej: 1650';
-                    valorInput.type = 'number';
-                    break;
-                case 'serie':
-                    valorInput.placeholder = 'Ej: A, B, C';
-                    valorInput.type = 'text';
-                    break;
-                case 'año':
-                    valorInput.placeholder = 'Ej: 2023';
-                    valorInput.type = 'number';
-                    break;
-                case 'rango':
-                    valorGroup.style.display = 'none';
-                    codigoInicioGroup.style.display = 'flex';
-                    codigoFinGroup.style.display = 'flex';
-                    break;
-                case 'pagina':
-                    valorInput.placeholder = 'Ej: 25';
-                    valorInput.type = 'number';
-                    break;
-            }
+        function getUrlParams() {
+            const params = {};
+            window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+                params[key] = decodeURIComponent(value);
+            });
+            return params;
         }
-        
-        async function buscarAvanzado() {
-            const tipo = document.getElementById('tipoBusqueda').value;
-            const valor = document.getElementById('valorBusqueda').value;
-            const codigoInicio = document.getElementById('codigoInicio').value;
-            const codigoFin = document.getElementById('codigoFin').value;
-            
-            // Validar inputs
-            if (tipo === 'rango') {
-                if (!codigoInicio || !codigoFin) {
-                    alert('Para búsqueda por rango, debes ingresar código inicio y fin');
-                    return;
-                }
-            } else {
-                if (!valor) {
-                    alert('Por favor ingresa un valor para buscar');
-                    return;
-                }
-            }
-            
-            showStatus('loading', '<i class="fas fa-spinner spinner"></i> Buscando...');
-            
-            try {
-                const baseUrl = window.location.origin;
-                let url = `${baseUrl}/api/buscar-avanzado?tipo=${tipo}`;
-                
-                if (tipo === 'rango') {
-                    url += `&valor=rango&codigoInicio=${codigoInicio}&codigoFin=${codigoFin}`;
-                } else {
-                    url += `&valor=${encodeURIComponent(valor)}`;
-                }
-                
-                console.log('🔍 Buscando en:', url);
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    mostrarResultados(data);
-                    showStatus('success', `<i class="fas fa-check-circle"></i> Se encontraron ${data.resultadosEncontrados} resultado(s)`);
-                } else {
-                    showStatus('error', `<i class="fas fa-times-circle"></i> ${data.error}: ${data.details || ''}`);
-                    mostrarEstadoVacio('No se encontraron resultados');
-                }
-            } catch (error) {
-                console.error('Error en búsqueda:', error);
-                showStatus('error', '<i class="fas fa-exclamation-triangle"></i> Error al realizar la búsqueda');
-                mostrarEstadoVacio('Error en la búsqueda');
-            }
+        const params = getUrlParams();
+        if(params.pdfId && params.pagina) {
+            document.getElementById('visorContainer').innerHTML = `
+                <iframe id='pdfFrame' src='https://drive.google.com/file/d/${params.pdfId}/preview#page=${params.pagina}' style='width:100%;height:80vh;border-radius:12px;border:none;box-shadow:0 4px 24px #764ba220;'></iframe>
+                <div style='margin-top:18px;font-size:1.1em;color:#555;'>Mostrando <b>${params.nombre || 'PDF'}</b> en la página <b>${params.pagina}</b></div>
+            `;
         }
-        
-        function mostrarResultados(data) {
-            const container = document.getElementById('results-container');
-            
-            if (data.resultados.length === 0) {
-                mostrarEstadoVacio('No se encontraron resultados');
+        // Llenar el selector de archivos PDF
+        fetch('/api/pdf-data')
+          .then(res => res.json())
+          .then(json => {
+            const select = document.getElementById('pdfIdInput');
+            if (!json.data || json.data.length === 0) {
+              select.innerHTML = '<option value="">No hay archivos disponibles</option>';
+              return;
+            }
+            select.innerHTML = json.data.map(pdf => `<option value="${pdf.id}" data-nombre="${pdf.name}">${pdf.name}</option>`).join('');
+            // Autocompletar nombre y rango de página
+            select.addEventListener('change', function() {
+              const selected = select.options[select.selectedIndex];
+              document.getElementById('nombreInput').value = selected.getAttribute('data-nombre') || '';
+              // Buscar rango de páginas en la tabla (opcional, si se expone en la API)
+            });
+            // Disparar evento para el primer valor
+            select.dispatchEvent(new Event('change'));
+          });
+        document.getElementById('formAvanzada').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pdfId = document.getElementById('pdfIdInput').value.trim();
+            const pagina = document.getElementById('paginaInput').value.trim();
+            const nombre = document.getElementById('nombreInput').value.trim();
+            if(!pdfId || !pagina) {
+                alert('Por favor selecciona el PDF y el número de página.');
                 return;
             }
-            
-            const html = `
-                <div class="results-header fade-in">
-                    <h3><i class="fas fa-file-pdf"></i> Resultados de Búsqueda</h3>
-                    <p>Búsqueda: <strong>${data.tipoBusqueda}</strong> - <strong>${data.valorBuscado}</strong></p>
-                </div>
-                <div class="results-grid">
-                    ${data.resultados.map((pdf, idx) => `
-                        <div class="pdf-card fade-in" style="animation-delay:${0.07*idx}s">
-                            <div class="pdf-header">
-                                <div class="pdf-icon">
-                                    <i class="fas fa-file-pdf"></i>
-                                </div>
-                                <div class="pdf-title">${pdf.nombre}</div>
-                            </div>
-                            
-                            <div class="pdf-details">
-                                <div class="detail-item">
-                                    <i class="fas fa-tag detail-icon"></i>
-                                    <span>Serie: <strong>${pdf.serie || 'N/A'}</strong></span>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="fas fa-calendar detail-icon"></i>
-                                    <span>Año: <strong>${pdf.año || 'N/A'}</strong></span>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="fas fa-weight-hanging detail-icon"></i>
-                                    <span>Tamaño: <strong>${pdf.tamaño}</strong></span>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="fas fa-clock detail-icon"></i>
-                                    <span>Modificado: <strong>${pdf.modificado}</strong></span>
-                                </div>
-                            </div>
-                            
-                            <div class="pdf-stats">
-                                <div class="stat">
-                                    <div class="stat-number"><i class="fas fa-hashtag"></i> ${pdf.codigoInicio}-${pdf.codigoFin}</div>
-                                    <div class="stat-label">Códigos</div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-number"><i class="fas fa-file-alt"></i> ${pdf.paginaInicio}-${pdf.paginaFin}</div>
-                                    <div class="stat-label">Páginas</div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-number"><i class="fas fa-list-ol"></i> ${pdf.totalCodigos}</div>
-                                    <div class="stat-label">Total</div>
-                                </div>
-                            </div>
-                            
-                            <div class="pdf-actions">
-                                <button onclick="abrirVisor('${pdf.linkVisualizacion}', '${pdf.nombre}')" class="btn btn-primary btn-small">
-                                    <i class="fas fa-eye"></i> Ver PDF
-                                </button>
-                                <a href="${pdf.linkDescarga}" target="_blank" class="btn btn-secondary btn-small">
-                                    <i class="fas fa-download"></i> Descargar
-                                </a>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            container.innerHTML = html;
-        }
-        
-        function abrirVisor(url, nombre) {
-            const visorUrl = `visualizador.html?url=${encodeURIComponent(url)}&nombre=${encodeURIComponent(nombre)}`;
-            window.open(visorUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-        }
-        
-        function mostrarEstadoVacio(mensaje) {
-            const container = document.getElementById('results-container');
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-search"></i>
-                    <h3>${mensaje}</h3>
-                    <p>Intenta con diferentes criterios de búsqueda</p>
-                </div>
-            `;
-        }
-        
-        function showStatus(type, message) {
-            const container = document.getElementById('status-container');
-            container.innerHTML = `<div class="status ${type}">${message}</div>`;
-        }
-        
-        function limpiarBusqueda() {
-            document.getElementById('valorBusqueda').value = '';
-            document.getElementById('codigoInicio').value = '';
-            document.getElementById('codigoFin').value = '';
-            document.getElementById('tipoBusqueda').value = 'codigo';
-            toggleSearchFields();
-            
-            document.getElementById('status-container').innerHTML = '';
-            mostrarEstadoVacio('Realiza una búsqueda');
-        }
-        
-        function volverInicio() {
-            window.location.href = '/';
-        }
-        
-        // Initialize
-        toggleSearchFields();
-        
-        // Añadir iconos a los campos de búsqueda
-        document.addEventListener('DOMContentLoaded', function() {
-            const iconos = {
-                'tipoBusqueda': 'fa-filter',
-                'valorBusqueda': 'fa-search',
-                'codigoInicio': 'fa-arrow-right-1-9',
-                'codigoFin': 'fa-arrow-right-9-1'
-            };
-            Object.entries(iconos).forEach(([id, icon]) => {
-                const group = document.getElementById(id + 'Group') || document.getElementById('valorGroup');
-                if (group && !group.querySelector('i.fa')) {
-                    const input = group.querySelector('input, select');
-                    if (input) {
-                        const i = document.createElement('i');
-                        i.className = 'fa ' + icon;
-                        group.appendChild(i);
-                    }
-                }
-            });
+            const url = `?pdfId=${encodeURIComponent(pdfId)}&pagina=${encodeURIComponent(pagina)}${nombre ? `&nombre=${encodeURIComponent(nombre)}` : ''}`;
+            window.location.search = url;
         });
     </script>
 </body>
