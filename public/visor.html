@@ -136,7 +136,7 @@
             const pdfId = document.getElementById('pdfIdInput').value.trim();
             const pagina = document.getElementById('paginaInput').value.trim();
             if(pdfId && pagina) {
-                const url = `/visor.html?pdfId=${encodeURIComponent(pdfId)}&pagina=${encodeURIComponent(pagina)}`;
+                const url = `/visualizador.html?pdfId=${encodeURIComponent(pdfId)}&pagina=${encodeURIComponent(pagina)}`;
                 window.open(url, '_blank');
             }
         }
