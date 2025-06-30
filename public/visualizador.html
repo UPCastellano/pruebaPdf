@@ -14,9 +14,9 @@
             margin: 0;
         }
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 32px 16px;
+            padding: 20px;
         }
         .header {
             background: rgba(255, 255, 255, 0.98);
@@ -73,11 +73,30 @@
             box-shadow: 0 4px 18px #764ba220;
             padding: 12px;
             text-align: center;
+            min-height: 600px;
         }
-        #pdf-canvas {
-            max-width: 100%;
+        #pdf-iframe {
+            width: 100%;
+            height: 80vh;
+            border: none;
             border-radius: 8px;
             box-shadow: 0 2px 8px #764ba220;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            font-size: 1.2em;
+            color: #666;
+        }
+        .loading i {
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -85,22 +104,20 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-file-pdf"></i> Visualizador de PDF</h1>
-            <div id="pdf-title" style="color:#555;font-size:1.1em;"></div>
+            <div id="pdf-title" style="color:#555;font-size:1.1em;">Cargando...</div>
         </div>
         <div class="toolbar">
-            <button id="prevPage" title="Página anterior"><i class="fas fa-arrow-left"></i></button>
-            <input type="number" id="pageNum" min="1" value="1" style="width:50px;">
-            <span id="pageCount">/ 1</span>
-            <button id="nextPage" title="Página siguiente"><i class="fas fa-arrow-right"></i></button>
-            <button id="zoomOut" title="Alejar"><i class="fas fa-search-minus"></i></button>
-            <button id="zoomIn" title="Acercar"><i class="fas fa-search-plus"></i></button>
-            <button id="fullscreen" title="Pantalla completa"><i class="fas fa-expand"></i></button>
+            <button id="openDrive" title="Abrir en Google Drive"><i class="fas fa-external-link-alt"></i> Abrir en Drive</button>
+            <button id="download" title="Descargar PDF"><i class="fas fa-download"></i> Descargar</button>
+            <button id="fullscreen" title="Pantalla completa"><i class="fas fa-expand"></i> Pantalla Completa</button>
         </div>
         <div class="pdf-viewer">
-            <canvas id="pdf-canvas"></canvas>
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner"></i> Cargando PDF...
+            </div>
+            <iframe id="pdf-iframe" style="display:none;"></iframe>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
     // Obtener parámetros de la URL
     function getUrlParams() {
@@ -110,76 +127,93 @@
         });
         return params;
     }
+    
     const params = getUrlParams();
     const pdfId = params.pdfId;
     const paginaInicial = parseInt(params.pagina) || 1;
-    let pdfDoc = null, pageNum = paginaInicial, pageCount = 1, scale = 1.2;
-    const canvas = document.getElementById('pdf-canvas');
-    const ctx = canvas.getContext('2d');
-    document.getElementById('pageNum').value = paginaInicial;
+    let pdfInfo = null;
 
-    // Obtener el enlace de descarga de Google Drive
-    async function getPdfUrl(pdfId) {
-        const res = await fetch(`/api/pdf-data`);
-        const data = await res.json();
-        const pdf = data.data.find(f => f.id === pdfId);
-        return pdf ? pdf.downloadLink : null;
+    // Mostrar estado de carga
+    function showLoading(message) {
+        document.getElementById('pdf-title').innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${message}`;
+        document.getElementById('loading').innerHTML = `<i class="fas fa-spinner"></i> ${message}`;
     }
 
-    async function renderPage(num) {
-        if (!pdfDoc) return;
-        pageNum = num;
-        document.getElementById('pageNum').value = num;
-        document.getElementById('pageCount').textContent = `/ ${pdfDoc.numPages}`;
-        const page = await pdfDoc.getPage(num);
-        const viewport = page.getViewport({ scale });
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        await page.render({ canvasContext: ctx, viewport }).promise;
+    // Mostrar error
+    function showError(message) {
+        document.getElementById('pdf-title').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+        document.getElementById('loading').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
     }
 
+    // Obtener información del PDF
+    async function getPdfInfo(pdfId) {
+        try {
+            showLoading('Obteniendo información del PDF...');
+            const res = await fetch(`/api/pdf-data`);
+            if (!res.ok) throw new Error('Error al obtener datos del servidor');
+            const data = await res.json();
+            if (!data.data || data.data.length === 0) throw new Error('No se encontraron PDFs');
+            const pdf = data.data.find(f => f.id === pdfId);
+            if (!pdf) throw new Error('PDF no encontrado');
+            return pdf;
+        } catch (error) {
+            console.error('Error obteniendo PDF:', error);
+            throw error;
+        }
+    }
+
+    // Cargar el PDF en el iframe
     async function loadPdf() {
-        if (!pdfId) return;
-        const url = await getPdfUrl(pdfId);
-        if (!url) {
-            alert('No se pudo obtener el PDF.');
+        if (!pdfId) {
+            showError('No se proporcionó ID de PDF');
             return;
         }
-        document.getElementById('pdf-title').textContent = `ID: ${pdfId}`;
-        const loadingTask = window['pdfjsLib'].getDocument(url);
-        pdfDoc = await loadingTask.promise;
-        pageCount = pdfDoc.numPages;
-        document.getElementById('pageCount').textContent = `/ ${pageCount}`;
-        renderPage(pageNum);
+        
+        try {
+            pdfInfo = await getPdfInfo(pdfId);
+            if (!pdfInfo) {
+                showError('No se pudo obtener información del PDF');
+                return;
+            }
+            
+            document.getElementById('pdf-title').textContent = pdfInfo.name || `PDF ID: ${pdfId}`;
+            
+            // Construir URL de Google Drive con página específica
+            const driveUrl = `https://drive.google.com/file/d/${pdfId}/preview`;
+            const iframe = document.getElementById('pdf-iframe');
+            iframe.src = driveUrl;
+            
+            // Ocultar loading y mostrar iframe
+            document.getElementById('loading').style.display = 'none';
+            iframe.style.display = 'block';
+            
+            // Configurar botones
+            document.getElementById('openDrive').onclick = function() {
+                window.open(pdfInfo.webViewLink, '_blank');
+            };
+            
+            document.getElementById('download').onclick = function() {
+                if (pdfInfo.downloadLink) {
+                    window.open(pdfInfo.downloadLink, '_blank');
+                } else {
+                    alert('Enlace de descarga no disponible');
+                }
+            };
+            
+            document.getElementById('fullscreen').onclick = function() {
+                if (iframe.requestFullscreen) iframe.requestFullscreen();
+                else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+                else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
+            };
+            
+        } catch (error) {
+            console.error('Error cargando PDF:', error);
+            showError('Error al cargar el PDF: ' + error.message);
+        }
     }
 
-    document.getElementById('prevPage').onclick = function() {
-        if (pageNum <= 1) return;
-        renderPage(pageNum - 1);
-    };
-    document.getElementById('nextPage').onclick = function() {
-        if (pageNum >= pageCount) return;
-        renderPage(pageNum + 1);
-    };
-    document.getElementById('zoomIn').onclick = function() {
-        scale = Math.min(scale + 0.2, 3);
-        renderPage(pageNum);
-    };
-    document.getElementById('zoomOut').onclick = function() {
-        scale = Math.max(scale - 0.2, 0.5);
-        renderPage(pageNum);
-    };
-    document.getElementById('fullscreen').onclick = function() {
-        if (canvas.requestFullscreen) canvas.requestFullscreen();
-        else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
-        else if (canvas.msRequestFullscreen) canvas.msRequestFullscreen();
-    };
-    document.getElementById('pageNum').onchange = function() {
-        let val = parseInt(this.value);
-        if (val >= 1 && val <= pageCount) renderPage(val);
-    };
-
-    loadPdf();
+    // Inicializar cuando la página esté lista
+    document.addEventListener('DOMContentLoaded', loadPdf);
     </script>
 </body>
 </html> 
