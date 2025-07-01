@@ -476,7 +476,7 @@
         }
 
         function abrirVisorPagina(pdfId, nombre, pagina, link) {
-            const url = `/visor.html?pdfId=${encodeURIComponent(pdfId)}&nombre=${encodeURIComponent(nombre)}&pagina=${encodeURIComponent(pagina)}`;
+            const url = `/visor.html?url=${encodeURIComponent(link)}&name=${encodeURIComponent(nombre)}&page=${encodeURIComponent(pagina)}`;
             window.open(url, '_blank');
         }
 

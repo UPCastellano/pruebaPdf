@@ -74,7 +74,7 @@ module.exports = async function handler(req, res) {
       codigoFin: pdfInfo.codigoFin,
       encontrado: true,
       timestamp: new Date().toISOString(),
-      linkVisualizacion: `/visor.html?pdfId=${encodeURIComponent(pdfInfo.pdfId)}&pagina=${paginaCalculada}`,
+      linkVisualizacion: `/visor.html?url=${encodeURIComponent(`https://pdfbuckets.cellar-c2.services.clever-cloud.com/${pdfInfo.pdfId}`)}&name=${encodeURIComponent(pdfInfo.pdfId)}&page=${paginaCalculada}`,
       linkDescarga: `https://pdfbuckets.cellar-c2.services.clever-cloud.com/${encodeURIComponent(pdfInfo.pdfId)}`,
     });
   } catch (error) {
