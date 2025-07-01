@@ -342,21 +342,47 @@
                     }
                 },
                 columns: [
-                    { data: 'name', render: function(data) { return `<strong>${data}</strong>`; } },
-                    { data: 'size' },
-                    { data: 'modified' },
-                    { data: 'codigoInicio', render: function(data) { return `<span class="badge">${data}</span>`; } },
-                    { data: 'codigoFin', render: function(data) { return `<span class="badge">${data}</span>`; } },
-                    { data: null, render: function(data, type, row) { return `${row.paginaInicio} - ${row.paginaFin} (${row.totalPaginas})`; } },
-                    { data: 'totalCodigos' },
+                    { data: 'name', render: function(data, type, row) {
+                        return `<span title='${data}' style='display:flex;align-items:center;gap:8px;'>
+                            <i class='fas fa-file-pdf' style='color:#d32f2f;font-size:1.3em;'></i>
+                            <strong>${data}</strong>
+                        </span>`;
+                    }
+                    },
+                    { data: 'size', render: function(data) {
+                        return `<span title='Tamaño del archivo'><i class='fas fa-weight-hanging'></i> ${data}</span>`;
+                    }
+                    },
+                    { data: 'modified', render: function(data) {
+                        return `<span title='Fecha de modificación'><i class='fas fa-calendar'></i> ${data}</span>`;
+                    }
+                    },
+                    { data: 'codigoInicio', render: function(data) {
+                        return `<span class="badge" title='Código inicial'><i class='fas fa-hashtag'></i> ${data}</span>`;
+                    }
+                    },
+                    { data: 'codigoFin', render: function(data) {
+                        return `<span class="badge" title='Código final'><i class='fas fa-hashtag'></i> ${data}</span>`;
+                    }
+                    },
+                    { data: null, render: function(data, type, row) {
+                        return `<span title='Rango de páginas'><i class='fas fa-file-alt'></i> ${row.paginaInicio} - ${row.paginaFin} <span class='badge' style='background:#4caf50;'>${row.totalPaginas}</span></span>`;
+                    }
+                    },
+                    { data: 'totalCodigos', render: function(data) {
+                        return `<span title='Total de códigos'><i class='fas fa-calculator'></i> ${data}</span>`;
+                    }
+                    },
                     { data: null, render: function(data, type, row) {
                         return `<div class='result-actions'>
                             <input type='number' min='${row.paginaInicio}' max='${row.paginaFin}' placeholder='Página' style='width:70px;padding:4px 8px;border-radius:6px;border:1px solid #ccc;margin-right:6px;'>
-                            <button class='btn btn-primary btn-buscar-pagina' data-pdfid='${row.id}' data-nombre='${row.name}' data-pag-inicio='${row.paginaInicio}' data-pag-fin='${row.paginaFin}'>
+                            <button class='btn btn-primary btn-buscar-pagina' data-pdfid='${row.id}' data-nombre='${row.name}' data-pag-inicio='${row.paginaInicio}' data-pag-fin='${row.paginaFin}' title='Ver página'>
                                 <i class='fas fa-eye'></i> Ver
                             </button>
+                            <a class='btn btn-success' href='#' title='Descargar PDF' style='margin-left:4px;'><i class='fas fa-download'></i></a>
                         </div>`;
-                    }}
+                    }
+                    }
                 ],
                 responsive: true,
                 pageLength: 25,
@@ -413,27 +439,19 @@
         function mostrarResultadoBusqueda(data) {
             const container = document.getElementById('search-result-container');
             container.innerHTML = `
-                <div class="search-result">
-                    <h3><i class="fas fa-search"></i> Resultado de Búsqueda - Código ${data.codigo}</h3>
+                <div class="search-result" style="border:2px solid #4a90e2;background:linear-gradient(135deg,#e3f0ff 0%,#f8faff 100%);">
+                    <h3 style="color:#2c3e50;"><i class="fas fa-search"></i> Resultado de Búsqueda - Código <span class='badge' style='background:#d32f2f;'>${data.codigo}</span></h3>
                     <div class="result-grid">
-                        <div class="result-item">
-                            <strong>PDF:</strong> ${data.nombrePdf}
-                        </div>
-                        <div class="result-item">
-                            <strong>Página Calculada:</strong> ${data.paginaCalculada}
-                        </div>
-                        <div class="result-item">
-                            <strong>Rango de Páginas:</strong> ${data.paginaInicio} - ${data.paginaFin}
-                        </div>
-                        <div class="result-item">
-                            <strong>Rango de Códigos:</strong> ${data.codigoInicio} - ${data.codigoFin}
-                        </div>
+                        <div class="result-item"><i class='fas fa-file-pdf' style='color:#d32f2f;'></i> <strong>PDF:</strong> ${data.nombrePdf}</div>
+                        <div class="result-item"><i class='fas fa-file-alt'></i> <strong>Página Calculada:</strong> <span class='badge' style='background:#4caf50;'>${data.paginaCalculada}</span></div>
+                        <div class="result-item"><i class='fas fa-file-alt'></i> <strong>Rango de Páginas:</strong> ${data.paginaInicio} - ${data.paginaFin}</div>
+                        <div class="result-item"><i class='fas fa-hashtag'></i> <strong>Rango de Códigos:</strong> ${data.codigoInicio} - ${data.codigoFin}</div>
                     </div>
                     <div class="result-actions">
-                        <a href="${data.linkVisualizacion}" target="_blank" class="btn btn-primary">
+                        <a href="${data.linkVisualizacion || '#'}" target="_blank" class="btn btn-primary" title="Ver PDF">
                             <i class="fas fa-eye"></i> Ver PDF
                         </a>
-                        <a href="${data.linkDescarga}" target="_blank" class="btn btn-success">
+                        <a href="${data.linkDescarga || '#'}" target="_blank" class="btn btn-success" title="Descargar PDF">
                             <i class="fas fa-download"></i> Descargar PDF
                         </a>
                     </div>
@@ -459,6 +477,30 @@
         function abrirVisorPagina(pdfId, nombre, pagina) {
             const url = `/visualizador.html?pdfId=${encodeURIComponent(pdfId)}&nombre=${encodeURIComponent(nombre)}&pagina=${encodeURIComponent(pagina)}`;
             window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        }
+
+        // Función para mostrar resultados de búsqueda avanzada o por documento
+        function mostrarResultadosAvanzados(data) {
+            const container = document.getElementById('search-result-container');
+            if (!data || !data.resultados || data.resultados.length === 0) {
+                container.innerHTML = `<div class='search-result' style='background:#ffebee;border:2px solid #d32f2f;color:#c62828;'>
+                    <i class='fas fa-exclamation-triangle'></i> No se encontraron resultados para la búsqueda avanzada.
+                </div>`;
+                return;
+            }
+            let html = `<div class='search-result' style='border:2px solid #4a90e2;background:linear-gradient(135deg,#e3f0ff 0%,#f8faff 100%);'>
+                <h3 style='color:#2c3e50;'><i class='fas fa-search'></i> Resultados de Búsqueda Avanzada <span class='badge' style='background:#007bff;'>${data.tipoBusqueda || ''}</span></h3>
+                <div class='result-grid'>`;
+            data.resultados.forEach(pdf => {
+                html += `<div class='result-item' style='background:#fff;'>
+                    <i class='fas fa-file-pdf' style='color:#d32f2f;'></i> <strong>PDF:</strong> ${pdf.pdfId || pdf.nombre || pdf.name}<br>
+                    <i class='fas fa-hashtag'></i> <strong>Códigos:</strong> ${pdf.codigoInicio} - ${pdf.codigoFin}<br>
+                    <i class='fas fa-file-alt'></i> <strong>Páginas:</strong> ${pdf.paginaInicio} - ${pdf.paginaFin} <span class='badge' style='background:#4caf50;'>${pdf.totalPaginas || (pdf.paginaFin - pdf.paginaInicio + 1)}</span><br>
+                    <i class='fas fa-calculator'></i> <strong>Total Códigos:</strong> ${pdf.totalCodigos || (pdf.codigoFin - pdf.codigoInicio + 1)}
+                </div>`;
+            });
+            html += `</div></div>`;
+            container.innerHTML = html;
         }
     </script>
 </body>

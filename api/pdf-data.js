@@ -1,258 +1,80 @@
-// API principal con las nuevas credenciales del proyecto pdfbusqueda
-const { google } = require("googleapis")
+// API para listar PDFs y sus metadatos desde Cellar S3
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 
-const codigosPaginas = [
-  {
-    pdfId: "1S4AS3ZgN2i7XMj57EbE1XkILKkmfsk-T",
-    codigoInicio: 1619,
-    codigoFin: 1688,
-    paginaInicio: 2,
-    paginaFin: 71,
+const s3 = new S3Client({
+  region: 'eu-west-1',
+  endpoint: 'https://cellar-c2.services.clever-cloud.com',
+  credentials: {
+    accessKeyId: 'ZN5VDGLT6HAM4J9MQRF8',
+    secretAccessKey: 'uKC3tr0Dqi7C6WAY9sVmW7PDmFCSJ7RuqPFN747M',
   },
-  {
-    pdfId: "1BzgdLF_1nYANpfThTnt7sjAGCVqjJ82q",
-    codigoInicio: 1689,
-    codigoFin: 1755,
-    paginaInicio: 5,
-    paginaFin: 72,
-  },
-  {
-    pdfId: "1i5THNFxVBtcH-enXQEIj1IjYTedRy3_Q",
-    codigoInicio: 1757,
-    codigoFin: 1800,
-    paginaInicio: 4,
-    paginaFin: 47,
-  },
-  {
-    pdfId: "1INiU5qvRTxknI5IKzpDSLW6d-KYuf742",
-    codigoInicio: 1801,
-    codigoFin: 1851,
-    paginaInicio: 5,
-    paginaFin: 55,
-  },
-  {
-    pdfId: "1U8znCxJWEydIZjfq-YxXSJEDb5yZkvrR",
-    codigoInicio: 1851,
-    codigoFin: 1900,
-    paginaInicio: 4,
-    paginaFin: 40,
-  },
-  {
-    pdfId: "1ZQq8rJlzbwNVsXvQuGobeAuQJx6MQRyM",
-    codigoInicio: 1889,
-    codigoFin: 1939,
-    paginaInicio: 4,
-    paginaFin: 40,
-  },
-  {
-    pdfId: "1nMXBjzdXzCEAw9WBOItKPIeYXHblfGCN",
-    codigoInicio: 1940,
-    codigoFin: 1973,
-    paginaInicio: 4,
-    paginaFin: 37,
-  },
-  {
-    pdfId: "16LImseW0uSu9tZtmo1lrxgu32BxCZW6_",
-    codigoInicio: 1974,
-    codigoFin: 2017,
-    paginaInicio: 4,
-    paginaFin: 47,
-  },
-  {
-    pdfId: "1KqE5eWMOVcZvjmlQyd6RILEoKg2Gb384",
-    codigoInicio: 2018,
-    codigoFin: 2052,
-    paginaInicio: 4,
-    paginaFin: 38,
-  },
-  {
-    pdfId: "16ayDHQP-1040MkTaQgXNlMiCSq3dABvX",
-    codigoInicio: 2053,
-    codigoFin: 2071,
-    paginaInicio: 3,
-    paginaFin: 21,
-  },
-  {
-    pdfId: "18fzYtjJ9NA5_XEq9eC6Mn1PsrlKR-OJR",
-    codigoInicio: 2072,
-    codigoFin: 2099,
-    paginaInicio: 3,
-    paginaFin: 30,
-  },
-]
+  forcePathStyle: true,
+});
 
-function formatPrivateKey(privateKey) {
-  if (!privateKey) return null
+const BUCKET = 'pdfbuckets';
+const METADATA_FILE = 'pdf-metadata.json';
 
-  // Limpiar la clave
-  let cleanKey = privateKey.trim()
-
-  // Reemplazar \\n con \n reales
-  cleanKey = cleanKey.replace(/\\n/g, "\n")
-
-  // Si no tiene los headers, agregarlos
-  if (!cleanKey.includes("-----BEGIN PRIVATE KEY-----")) {
-    cleanKey = `-----BEGIN PRIVATE KEY-----\n${cleanKey}\n-----END PRIVATE KEY-----`
-  }
-
-  // Asegurar formato correcto
-  cleanKey = cleanKey
-    .replace(/-----BEGIN PRIVATE KEY-----\s*/, "-----BEGIN PRIVATE KEY-----\n")
-    .replace(/\s*-----END PRIVATE KEY-----/, "\n-----END PRIVATE KEY-----")
-
-  return cleanKey
+async function getMetadataFromS3() {
+  const command = new GetObjectCommand({
+    Bucket: BUCKET,
+    Key: METADATA_FILE,
+  });
+  const response = await s3.send(command);
+  // Leer el stream y convertir a string
+  const streamToString = (stream) => new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+  });
+  const jsonString = await streamToString(response.Body);
+  return JSON.parse(jsonString);
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*")
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === "OPTIONS") {
-    res.status(200).end()
-    return
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
   }
 
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" })
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    console.log("🚀 Iniciando búsqueda de PDFs con nuevas credenciales...")
-
-    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY
-    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
-
-    // Verificar credenciales específicas del nuevo proyecto
-    const expectedEmail = "pdf-vercel-app@pdfbusqueda.iam.gserviceaccount.com"
-    const expectedFolder = "18W0EM6vs0sJ1M0Qrpu6HC2r32ZQ8IIgV"
-
-    if (!clientEmail || !privateKey || !folderId) {
-      return res.status(500).json({
-        error: "Variables de entorno faltantes",
-        details: "Verifica las nuevas credenciales del proyecto pdfbusqueda",
-        configuracionEsperada: {
-          GOOGLE_CLIENT_EMAIL: expectedEmail,
-          GOOGLE_DRIVE_FOLDER_ID: expectedFolder,
-        },
-        testUrl: `/api/test-credentials`,
-      })
-    }
-
-    // Verificar que sean las credenciales correctas
-    if (clientEmail !== expectedEmail) {
-      return res.status(500).json({
-        error: "Email de service account incorrecto",
-        details: `Esperado: ${expectedEmail}, Recibido: ${clientEmail}`,
-      })
-    }
-
-    if (folderId !== expectedFolder) {
-      return res.status(500).json({
-        error: "Folder ID incorrecto",
-        details: `Esperado: ${expectedFolder}, Recibido: ${folderId}`,
-      })
-    }
-
-    // Formatear la private key correctamente
-    const formattedPrivateKey = formatPrivateKey(privateKey)
-
-    if (!formattedPrivateKey) {
-      return res.status(500).json({
-        error: "Error en GOOGLE_PRIVATE_KEY",
-        details: "La clave privada no se pudo formatear correctamente",
-      })
-    }
-
-    console.log("🔑 Usando credenciales del proyecto pdfbusqueda")
-
-    // Configurar autenticación con las nuevas credenciales
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: clientEmail,
-        private_key: formattedPrivateKey,
-      },
-      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
-    })
-
-    const drive = google.drive({ version: "v3", auth })
-
-    // Obtener PDFs específicos usando los IDs conocidos
-    const pdfIds = codigosPaginas.map((item) => item.pdfId)
-    const pdfDataPromises = pdfIds.map(async (pdfId) => {
-      try {
-        const file = await drive.files.get({
-          fileId: pdfId,
-          fields: "id, name, size, modifiedTime, webViewLink, webContentLink",
-        })
-        return file.data
-      } catch (error) {
-        console.error(`Error obteniendo PDF ${pdfId}:`, error.message)
-        return null
-      }
-    })
-
-    const pdfFiles = await Promise.all(pdfDataPromises)
-    const validPdfFiles = pdfFiles.filter((file) => file !== null)
-
-    console.log(`✅ Se encontraron ${validPdfFiles.length} archivos PDF con nuevas credenciales`)
-
+    const metadata = await getMetadataFromS3();
     // Formatear datos para DataTables
-    const formattedData = validPdfFiles.map((file) => {
-      const codigoInfo = codigosPaginas.find((item) => item.pdfId === file.id)
-
-      return {
-        id: file.id,
-        name: file.name || "Sin nombre",
-        size: file.size ? `${Math.round(file.size / 1024)} KB` : "N/A",
-        modified: file.modifiedTime ? new Date(file.modifiedTime).toLocaleDateString("es-ES") : "N/A",
-        codigoInicio: codigoInfo?.codigoInicio || "N/A",
-        codigoFin: codigoInfo?.codigoFin || "N/A",
-        paginaInicio: codigoInfo?.paginaInicio || "N/A",
-        paginaFin: codigoInfo?.paginaFin || "N/A",
-        totalPaginas: codigoInfo ? codigoInfo.paginaFin - codigoInfo.paginaInicio + 1 : "N/A",
-        totalCodigos: codigoInfo ? codigoInfo.codigoFin - codigoInfo.codigoInicio + 1 : "N/A",
-        link: file.webViewLink || "#",
-        downloadLink: file.webContentLink || "#",
-      }
-    })
+    const formattedData = metadata.map((file) => ({
+      id: file.pdfId,
+      name: file.pdfId,
+      size: 'N/A', // No tenemos tamaño aquí, se puede mejorar si se requiere
+      modified: 'N/A', // No tenemos fecha aquí, se puede mejorar si se requiere
+      codigoInicio: file.codigoInicio,
+      codigoFin: file.codigoFin,
+      paginaInicio: file.paginaInicio,
+      paginaFin: file.paginaFin,
+      totalPaginas: file.paginaFin && file.paginaInicio ? (file.paginaFin - file.paginaInicio + 1) : 'N/A',
+      totalCodigos: file.codigoFin && file.codigoInicio ? (file.codigoFin - file.codigoInicio + 1) : 'N/A',
+      link: '#', // Aquí podrías construir el link de descarga si lo necesitas
+      downloadLink: '#',
+    }));
 
     res.status(200).json({
       data: formattedData,
       recordsTotal: formattedData.length,
       recordsFiltered: formattedData.length,
       success: true,
-      proyecto: "pdfbusqueda",
-      serviceAccount: clientEmail,
       timestamp: new Date().toISOString(),
-    })
+    });
   } catch (error) {
-    console.error("💥 Error en la API con nuevas credenciales:", error)
-
-    let errorResponse = {
-      error: "Error al obtener datos de PDFs",
+    console.error('Error leyendo metadatos desde S3:', error);
+    res.status(500).json({
+      error: 'Error al obtener datos de PDFs desde Cellar S3',
       details: error.message,
-      code: error.code || "UNKNOWN_ERROR",
-      proyecto: "pdfbusqueda",
-      timestamp: new Date().toISOString(),
-    }
-
-    if (error.message.includes("invalid_grant")) {
-      errorResponse = {
-        error: "Error de autenticación JWT",
-        details: "Problema con GOOGLE_PRIVATE_KEY del proyecto pdfbusqueda",
-        solucion: "Usa /api/test-credentials para diagnosticar el problema",
-        testUrl: `/api/test-credentials`,
-      }
-    } else if (error.message.includes("access_denied")) {
-      errorResponse = {
-        error: "Acceso denegado a Google Drive",
-        details: "El service account pdf-vercel-app@pdfbusqueda.iam.gserviceaccount.com no tiene acceso",
-        solucion: "Comparte la carpeta con el service account",
-      }
-    }
-
-    res.status(500).json(errorResponse)
+    });
   }
-}
+};
