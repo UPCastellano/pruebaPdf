@@ -120,9 +120,9 @@
         if(params.pdfId && params.pagina) {
             // Construir la URL pública del PDF en Cellar S3
             const pdfUrl = `https://pdfbuckets.cellar-c2.services.clever-cloud.com/${encodeURIComponent(params.pdfId)}`;
-            // Usar el visor de PDF.js (desde CDN)
+            // Usar el visor de PDF.js local
             document.getElementById('visorContainer').innerHTML = `
-                <iframe id='pdfFrame' src='https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(pdfUrl)}#page=${params.pagina}' style='width:100%;height:80vh;border-radius:12px;border:none;box-shadow:0 4px 24px #764ba220;'></iframe>
+                <iframe id='pdfFrame' src='/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}#page=${params.pagina}' style='width:100%;height:80vh;border-radius:12px;border:none;box-shadow:0 4px 24px #764ba220;'></iframe>
                 <div style='margin-top:18px;font-size:1.1em;color:#555;'>Mostrando <b>${params.nombre || params.pdfId || 'PDF'}</b> en la página <b>${params.pagina}</b></div>
             `;
         }
