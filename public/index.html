@@ -476,8 +476,8 @@
         }
 
         function abrirVisorPagina(pdfId, nombre, pagina, link) {
-            const url = `/visualizador.html?pdfId=${encodeURIComponent(pdfId)}&nombre=${encodeURIComponent(nombre)}&pagina=${encodeURIComponent(pagina)}`;
-            window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+            const url = `/visor.html?pdfId=${encodeURIComponent(pdfId)}&nombre=${encodeURIComponent(nombre)}&pagina=${encodeURIComponent(pagina)}`;
+            window.open(url, '_blank');
         }
 
         // Función para mostrar resultados de búsqueda avanzada o por documento
