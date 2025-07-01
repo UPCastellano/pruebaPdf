@@ -101,6 +101,11 @@ module.exports = async function handler(req, res) {
         details: `No hay PDFs que coincidan con ${tipo}: ${valor}`,
       });
     }
+    resultados = resultados.map(pdf => ({
+      ...pdf,
+      linkVisualizacion: `/visor.html?pdfId=${encodeURIComponent(pdf.pdfId)}&pagina=${pdf.paginaInicio || 1}`,
+      linkDescarga: `https://pdfbuckets.cellar-c2.services.clever-cloud.com/${encodeURIComponent(pdf.pdfId)}`
+    }));
     res.status(200).json({
       success: true,
       tipoBusqueda: tipo,

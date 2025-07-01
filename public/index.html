@@ -376,10 +376,10 @@
                     { data: null, render: function(data, type, row) {
                         return `<div class='result-actions'>
                             <input type='number' min='${row.paginaInicio}' max='${row.paginaFin}' placeholder='Página' style='width:70px;padding:4px 8px;border-radius:6px;border:1px solid #ccc;margin-right:6px;'>
-                            <button class='btn btn-primary btn-buscar-pagina' data-pdfid='${row.id}' data-nombre='${row.name}' data-pag-inicio='${row.paginaInicio}' data-pag-fin='${row.paginaFin}' title='Ver página'>
+                            <button class='btn btn-primary btn-buscar-pagina' data-pdfid='${row.id}' data-nombre='${row.name}' data-pag-inicio='${row.paginaInicio}' data-pag-fin='${row.paginaFin}' data-link='${row.link}' title='Ver página'>
                                 <i class='fas fa-eye'></i> Ver
                             </button>
-                            <a class='btn btn-success' href='#' title='Descargar PDF' style='margin-left:4px;'><i class='fas fa-download'></i></a>
+                            <a class='btn btn-success' href='${row.downloadLink}' target='_blank' title='Descargar PDF' style='margin-left:4px;'><i class='fas fa-download'></i></a>
                         </div>`;
                     }
                     }
@@ -397,12 +397,13 @@
                         const nombre = $(this).data('nombre');
                         const pagInicio = $(this).data('pag-inicio');
                         const pagFin = $(this).data('pag-fin');
+                        const link = $(this).data('link');
                         if (!pagina || pagina < pagInicio || pagina > pagFin) {
                             alert(`Ingresa un número de página válido (${pagInicio}-${pagFin})`);
                             input.focus();
                             return;
                         }
-                        abrirVisorPagina(pdfId, nombre, pagina);
+                        abrirVisorPagina(pdfId, nombre, pagina, link);
                     });
                 }
             });
@@ -448,10 +449,10 @@
                         <div class="result-item"><i class='fas fa-hashtag'></i> <strong>Rango de Códigos:</strong> ${data.codigoInicio} - ${data.codigoFin}</div>
                     </div>
                     <div class="result-actions">
-                        <a href="${data.linkVisualizacion || '#'}" target="_blank" class="btn btn-primary" title="Ver PDF">
+                        <a href="${data.linkVisualizacion}" target="_blank" class="btn btn-primary" title="Ver PDF">
                             <i class="fas fa-eye"></i> Ver PDF
                         </a>
-                        <a href="${data.linkDescarga || '#'}" target="_blank" class="btn btn-success" title="Descargar PDF">
+                        <a href="${data.linkDescarga}" target="_blank" class="btn btn-success" title="Descargar PDF">
                             <i class="fas fa-download"></i> Descargar PDF
                         </a>
                     </div>
@@ -474,7 +475,7 @@
             `;
         }
 
-        function abrirVisorPagina(pdfId, nombre, pagina) {
+        function abrirVisorPagina(pdfId, nombre, pagina, link) {
             const url = `/visualizador.html?pdfId=${encodeURIComponent(pdfId)}&nombre=${encodeURIComponent(nombre)}&pagina=${encodeURIComponent(pagina)}`;
             window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
         }

@@ -139,6 +139,10 @@ module.exports = async function handler(req, res) {
         tamaño: 'N/A',
         modificado: 'N/A',
       },
+      links: {
+        visorDirecto: `/visor.html?pdfId=${encodeURIComponent(documento.pdfId)}&pagina=${paginaDestino}`,
+        descarga: `https://pdfbuckets.cellar-c2.services.clever-cloud.com/${encodeURIComponent(documento.pdfId)}`
+      },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

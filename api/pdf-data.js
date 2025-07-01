@@ -59,8 +59,8 @@ module.exports = async function handler(req, res) {
       paginaFin: file.paginaFin,
       totalPaginas: file.paginaFin && file.paginaInicio ? (file.paginaFin - file.paginaInicio + 1) : 'N/A',
       totalCodigos: file.codigoFin && file.codigoInicio ? (file.codigoFin - file.codigoInicio + 1) : 'N/A',
-      link: '#', // Aquí podrías construir el link de descarga si lo necesitas
-      downloadLink: '#',
+      link: `/visor.html?pdfId=${encodeURIComponent(file.pdfId || file.id)}&pagina=${file.paginaInicio || 1}`,
+      downloadLink: `https://pdfbuckets.cellar-c2.services.clever-cloud.com/${encodeURIComponent(file.pdfId || file.id)}`,
     }));
 
     res.status(200).json({
