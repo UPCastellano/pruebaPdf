@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba del Visor PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Prueba del Visor PDF</h1>
+        
+        <div class="info">
+            <h3>📋 Información de la Prueba</h3>
+            <p>Esta página te permite probar el visor de PDF con diferentes archivos de prueba.</p>
+            <p><strong>Estado:</strong> <span id="status">Verificando...</span></p>
+        </div>
+        
+        <h3>🔗 Enlaces de Prueba</h3>
+        <p>Haz clic en cualquiera de estos enlaces para probar el visor:</p>
+        
+        <div>
+            <a href="/visor.html?url=https://pdfbuckets.cellar-c2.services.clever-cloud.com/ejemplo.pdf&name=Documento%20de%20Prueba&page=1" 
+               target="_blank" class="btn">
+                📄 Probar con PDF de ejemplo
+            </a>
+        </div>
+        
+        <div>
+            <a href="/visor.html?url=https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf&name=PDF%20de%20Prueba%20Mozilla&page=1" 
+               target="_blank" class="btn">
+                🦊 Probar con PDF de Mozilla
+            </a>
+        </div>
+        
+        <div>
+            <a href="/visor.html?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf&name=PDF%20Dummy&page=1" 
+               target="_blank" class="btn">
+                📝 Probar con PDF Dummy
+            </a>
+        </div>
+        
+        <h3>🔧 Verificaciones</h3>
+        <ul id="checks">
+            <li>✅ Verificando archivos de PDF.js...</li>
+            <li>✅ Verificando visor personalizado...</li>
+            <li>✅ Verificando configuración...</li>
+        </ul>
+        
+        <div class="info">
+            <h3>📝 Notas</h3>
+            <ul>
+                <li>El visor usa PDF.js local en <code>/web/viewer.html</code></li>
+                <li>Los PDFs se cargan directamente desde las URLs proporcionadas</li>
+                <li>Si hay problemas de CORS, el visor mostrará un mensaje de error</li>
+                <li>El visor es responsive y funciona en móviles</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Verificar que los archivos necesarios existen
+        async function checkFiles() {
+            const files = [
+                '/web/viewer.html',
+                '/web/viewer.css',
+                '/web/viewer.mjs',
+                '/visor.html'
+            ];
+            
+            const checks = document.getElementById('checks');
+            checks.innerHTML = '';
+            
+            for (const file of files) {
+                try {
+                    const response = await fetch(file, { method: 'HEAD' });
+                    const status = response.ok ? '✅' : '❌';
+                    checks.innerHTML += `<li>${status} ${file}</li>`;
+                } catch (error) {
+                    checks.innerHTML += `<li>❌ ${file} (Error: ${error.message})</li>`;
+                }
+            }
+            
+            document.getElementById('status').textContent = 'Verificación completada';
+        }
+        
+        // Ejecutar verificaciones cuando la página cargue
+        document.addEventListener('DOMContentLoaded', checkFiles);
+    </script>
+</body>
+</html> 

@@ -132,59 +132,19 @@
     </div>
 
     <script>
-        // Obtener parámetros de la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const pdfUrl = urlParams.get('url');
-        const fileName = urlParams.get('name') || 'Documento PDF';
-        
-        // Actualizar título
-        document.querySelector('.header h1').textContent = `📄 ${fileName}`;
-        
-        if (!pdfUrl) {
-            showError('No se proporcionó URL del PDF');
-            return;
-        }
-        
-        // Configurar el visor de PDF
-        const viewer = document.getElementById('pdf-viewer');
-        const loading = document.getElementById('loading');
-        const error = document.getElementById('error');
-        
-        // Usar PDF.js local
-        const pdfjsViewerUrl = '/web/viewer.html';
-        viewer.src = `${pdfjsViewerUrl}?file=${encodeURIComponent(pdfUrl)}`;
-        
-        // Manejar eventos del iframe
-        viewer.onload = function() {
-            loading.style.display = 'none';
-            viewer.style.display = 'block';
-            
-            // Intentar comunicarse con el visor de PDF.js para obtener información de páginas
-            try {
-                const iframeWindow = viewer.contentWindow;
-                if (iframeWindow && iframeWindow.PDFViewerApplication) {
-                    // Esperar a que el visor esté listo
-                    setTimeout(() => {
-                        updatePageInfo();
-                    }, 2000);
-                }
-            } catch (e) {
-                console.log('No se pudo acceder al visor de PDF.js:', e);
-            }
-        };
-        
-        viewer.onerror = function() {
-            showError('Error al cargar el visor de PDF');
-        };
-        
+        // Función para mostrar errores
         function showError(message) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
             loading.style.display = 'none';
             error.style.display = 'flex';
             document.getElementById('error-message').textContent = message;
         }
         
+        // Función para actualizar información de páginas
         function updatePageInfo() {
             try {
+                const viewer = document.getElementById('pdf-viewer');
                 const iframeWindow = viewer.contentWindow;
                 if (iframeWindow && iframeWindow.PDFViewerApplication) {
                     const app = iframeWindow.PDFViewerApplication;
@@ -202,11 +162,58 @@
             }
         }
         
-        // Manejar errores de red
-        window.addEventListener('error', function(e) {
-            if (e.target === viewer) {
-                showError('Error de red al cargar el PDF');
+        // Inicialización cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener parámetros de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pdfUrl = urlParams.get('url');
+            const fileName = urlParams.get('name') || 'Documento PDF';
+            
+            // Actualizar título
+            document.querySelector('.header h1').textContent = `📄 ${fileName}`;
+            
+            if (!pdfUrl) {
+                showError('No se proporcionó URL del PDF');
+                return;
             }
+            
+            // Configurar el visor de PDF
+            const viewer = document.getElementById('pdf-viewer');
+            const loading = document.getElementById('loading');
+            
+            // Usar PDF.js local
+            const pdfjsViewerUrl = '/web/viewer.html';
+            viewer.src = `${pdfjsViewerUrl}?file=${encodeURIComponent(pdfUrl)}`;
+            
+            // Manejar eventos del iframe
+            viewer.onload = function() {
+                loading.style.display = 'none';
+                viewer.style.display = 'block';
+                
+                // Intentar comunicarse con el visor de PDF.js para obtener información de páginas
+                try {
+                    const iframeWindow = viewer.contentWindow;
+                    if (iframeWindow && iframeWindow.PDFViewerApplication) {
+                        // Esperar a que el visor esté listo
+                        setTimeout(() => {
+                            updatePageInfo();
+                        }, 2000);
+                    }
+                } catch (e) {
+                    console.log('No se pudo acceder al visor de PDF.js:', e);
+                }
+            };
+            
+            viewer.onerror = function() {
+                showError('Error al cargar el visor de PDF');
+            };
+            
+            // Manejar errores de red
+            window.addEventListener('error', function(e) {
+                if (e.target === viewer) {
+                    showError('Error de red al cargar el PDF');
+                }
+            });
         });
     </script>
 </body>
